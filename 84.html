@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Calculator</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+        }
+      }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+    
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useMemo, useEffect } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { Calculator, AlertCircle, ShieldCheck, Heart, Info, Stethoscope, CheckCircle2, Circle, HeartPulse, Activity, ShieldAlert, BedDouble, Layers, Table, CheckSquare, Square } from 'lucide-react';
+
+        // --- MINIFIED DATA ---
+        const RAW_PAY_LIFE = "0 24.35 19.37 17.53 15.42 14.80 13.31,1 24.56 19.60 17.69 15.53 14.86 13.31,2 24.96 19.97 17.96 15.74 15.06 13.35,3 25.37 20.33 18.26 15.95 15.25 13.43,4 25.80 20.71 18.56 16.17 15.46 13.55,5 26.25 21.11 18.89 16.41 15.69 13.69,6 26.72 21.52 19.22 16.65 15.93 13.85,7 27.20 21.93 19.57 16.91 16.18 14.04,8 27.72 22.39 19.94 17.17 16.45 14.23,9 28.26 22.84 20.33 17.44 16.73 14.44,10 28.83 23.31 20.74 17.72 17.03 14.69,11 29.43 23.80 21.16 18.02 17.35 14.93,12 30.03 24.31 21.60 18.33 17.67 15.18,13 30.66 24.84 22.04 18.65 18.00 15.45,14 31.28 25.38 22.50 18.98 18.33 15.73,15 31.92 25.95 22.96 19.32 18.66 15.96,16 32.57 26.53 23.42 19.67 19.00 16.21,17 33.23 27.13 23.88 20.03 19.34 16.46,18 33.89 27.75 24.35 20.41 19.69 16.72,19 34.57 28.40 24.84 20.80 20.03 16.99,20 35.27 29.07 25.33 21.21 20.39 17.28,21 35.97 29.78 25.84 21.64 20.76 17.57,22 36.71 30.50 26.36 22.08 21.15 17.90,23 37.47 31.25 26.91 22.54 21.54 18.22,24 38.26 32.03 27.47 23.01 21.96 18.56,25 39.07 32.85 28.05 23.51 22.40 18.92,26 39.93 33.69 28.67 24.02 22.85 19.30,27 40.82 34.57 29.30 24.56 23.34 19.70,28 41.76 35.50 29.98 25.12 23.85 20.11,29 42.72 36.45 30.67 25.71 24.38 20.56,30 43.74 37.44 31.39 26.32 24.94 21.01,31 44.79 38.49 32.16 26.96 25.53 21.49,32 45.89 39.57 32.95 27.62 26.16 21.99,33 47.04 40.70 33.77 28.31 26.81 22.53,34 48.21 41.88 34.63 29.03 27.48 23.08,35 49.45 43.10 35.52 29.79 28.19 23.66,36 50.72 44.37 36.44 30.58 28.93 24.28,37 52.05 45.71 37.41 31.41 29.71 24.92,38 53.43 47.09 38.41 32.26 30.52 25.59,39 54.86 48.53 39.45 33.15 31.37 26.30,40 56.33 50.03 40.54 34.09 32.25 27.03,41 57.87 51.28 41.66 35.06 33.18 27.79,42 59.47 52.58 42.83 36.07 34.15 28.61,43 61.13 53.93 44.06 37.11 35.17 29.45,44 62.84 55.33 45.32 38.21 36.24 30.33,45 64.64 56.78 46.49 39.35 37.35 31.26,46 66.48 58.30 47.63 40.54 38.54 32.24,47 68.23 59.86 48.82 41.78 39.76 33.27,48 69.86 61.49 50.05 43.08 41.06 34.35,49 71.55 63.15 51.34 44.43 42.20 35.48,50 73.29 64.74 52.67 45.85 43.40 36.68,51 75.09 66.38 54.07 47.27 44.66 37.96,52 76.95 68.09 55.52 48.54 46.00 39.30,53 78.88 69.86 57.05 49.88 47.41 40.73,54 80.89 71.70 58.66 51.28 48.92 42.10,55 82.98 73.61 60.35 52.74 50.53 43.44,56 85.17 75.59 62.15 54.29 52.26 44.86,57 87.45 77.65 64.05 55.91 54.12 46.39,58 89.85 79.80 66.08 57.63 56.12 48.03,59 92.36 82.04 68.25 59.46 58.29 49.79,60 95.00 84.39 70.57 61.41 60.64 51.70,61 97.79 86.86 73.06 63.50 63.20 53.77,62 100.74 89.46 75.74 65.75 65.97 56.02,63 103.86 92.22 78.64 68.17 68.99 58.48,64 107.17 95.15 81.78 70.80 72.29 61.17,65 110.71 98.28 85.19 73.66 75.89 64.11,66 114.51 101.64 88.90 76.78 79.81 67.34,67 118.58 105.23 92.95 80.17 84.11 70.88,68 122.97 109.10 97.36 83.87 87.15 74.76,69 127.72 113.26 102.18 87.91 92.04 77.83,70 132.85 117.73 107.44 92.30 97.53 82.43,71 138.39 122.53 113.17 97.09 101.92 85.67,72 144.37 127.68 119.40 102.29 108.33 91.05,73 150.82 133.20 126.16 107.94 115.30 96.92,74 157.76 139.12 133.48 114.07 122.85 103.31,75 165.20 145.44 141.39 120.72 131.01 110.27";
+        const RAW_20PAY = "0 12.76 11.47,1 12.81 11.47,2 12.98 11.51,3 13.15 11.58,4 13.33 11.68,5 13.53 11.80,6 13.73 11.94,7 13.95 12.10,8 14.18 12.27,9 14.42 12.45,10 14.68 12.66,11 14.96 12.87,12 15.23 13.09,13 15.52 13.32,14 15.80 13.56,15 16.09 13.76,16 16.38 13.97,17 16.67 14.19,18 16.97 14.41,19 17.27 14.65,20 17.58 14.90,21 17.90 15.15,22 18.23 15.43,23 18.57 15.71,24 18.93 16.00,25 19.31 16.31,26 19.70 16.64,27 20.12 16.98,28 20.56 17.34,29 21.02 17.72,30 21.50 18.11,31 22.01 18.53,32 22.55 18.96,33 23.11 19.42,34 23.69 19.90,35 24.30 20.40,36 24.94 20.93,37 25.61 21.48,38 26.31 22.06,39 27.04 22.67,40 27.80 23.30,41 28.60 23.96,42 29.44 24.66,43 30.32 25.39,44 31.24 26.15,45 32.20 26.95,46 33.22 27.79,47 34.28 28.68,48 35.40 29.61,49 36.57 30.59,50 37.81 31.62,51 39.13 32.72,52 40.51 33.88,53 41.99 35.11,54 43.56 36.41,55 45.25 37.81,56 47.05 39.29,57 48.99 40.89,58 51.08 42.60,59 53.33 44.44,60 55.77 46.43,61 58.42 48.59,62 61.29 50.93,63 64.19 53.49,64 66.96 56.27,65 69.89 59.32,66 71.99 61.90,67 73.80 63.61,68 75.13 64.71,69 76.40 66.13,70 78.11 67.07";
+        const RAW_PROCARE = "0 35.52 30.63,1 36.42 31.25,2 37.35 31.90,3 38.33 32.58,4 39.35 33.31,5 40.40 34.04,6 41.50 34.81,7 42.65 35.61,8 43.85 36.43,9 45.09 37.29,10 46.38 38.18,11 47.69 39.28,12 49.05 40.42,13 50.43 41.60,14 51.85 42.82,15 53.32 44.06,16 54.80 45.34,17 56.33 46.47,18 57.95 47.68,19 59.61 48.94,20 61.33 50.26,21 63.13 51.60,22 65.02 53.00,23 66.96 54.43,24 68.98 55.91,25 71.08 57.45,26 73.25 59.06,27 75.49 60.73,28 77.85 62.46,29 80.33 64.26,30 82.91 66.12,31 85.58 68.24,32 88.37 70.43,33 91.31 72.68,34 94.41 75.03,35 97.69 77.45,36 100.42 79.56,37 103.30 81.77,38 106.36 84.09,39 109.61 86.55,40 113.06 89.15,41 116.63 92.06,42 120.27 95.08,43 123.98 98.21,44 127.85 101.46,45 131.87 104.83,46 138.39 108.89,47 145.41 113.18,48 153.00 117.73,49 161.15 122.52,50 169.88 127.60,51 181.53 133.54,52 193.94 137.38,53 203.43 140.76,54 215.19 148.79,55 227.20 157.91,56 242.30 167.49,57 256.40 176.83,58 272.20 186.68,59 289.98 197.12,60 310.00 210.60";
+        const RAW_CISUPER_1099 = "0 39.39 36.28,1 39.84 36.65,2 40.31 37.04,3 40.82 37.46,4 41.36 37.91,5 41.92 38.38,6 42.52 38.88,7 43.15 39.40,8 43.82 39.94,9 44.50 40.51,10 45.15 41.09,11 45.94 41.91,12 46.69 42.74,13 47.45 43.60,14 48.23 44.46,15 49.02 45.36,16 49.83 46.28,17 50.65 47.05,18 51.53 47.85,19 52.41 48.68,20 53.33 49.54,21 54.31 50.43,22 55.31 51.34,23 56.34 52.27,24 57.42 53.22,25 58.53 54.22,26 59.63 55.26,27 60.78 56.33,28 61.96 57.43,29 63.19 58.58,30 64.46 59.75,31 65.78 60.97,32 67.15 62.21,33 68.58 63.47,34 70.07 64.76,35 71.62 66.07,36 73.04 67.39,37 74.51 68.77,38 76.07 70.19,39 77.72 71.68,40 79.45 73.22,41 81.19 74.97,42 82.92 76.76,43 84.63 78.55,44 86.35 80.38,45 88.10 82.25,46 90.56 84.18,47 93.18 86.17,48 95.98 88.28,49 98.94 90.47,50 102.06 92.76,51 105.41 95.15,52 108.86 97.61,53 112.49 100.15,54 116.24 102.74,55 120.03 105.39,56 123.83 108.06,57 127.65 110.74,58 131.54 113.45,59 135.56 116.21,60 139.73 119.04,61 144.10 121.98,62 148.69 125.07,63 153.47 128.31,64 158.49 131.71,65 163.79 135.32";
+        const RAW_CISUPER_2099 = "0 22.20 20.42,1 22.46 20.63,2 22.73 20.85,3 23.02 21.09,4 23.33 21.35,5 23.65 21.61,6 23.99 21.89,7 24.35 22.19,8 24.73 22.49,9 25.12 22.81,10 25.53 23.14,11 25.94 23.59,12 26.37 24.06,13 26.80 24.54,14 27.24 25.04,15 27.70 25.54,16 28.15 26.06,17 28.62 26.48,18 29.12 26.94,19 29.63 27.42,20 30.16 27.92,21 30.72 28.43,22 31.31 28.96,23 31.91 29.50,24 32.54 30.06,25 33.19 30.64,26 33.86 31.25,27 34.55 31.88,28 35.28 32.53,29 36.05 33.21,30 36.85 33.91,31 37.70 34.64,32 38.59 35.39,33 39.53 36.16,34 40.52 36.96,35 41.57 37.78,36 42.28 38.62,37 43.04 39.50,38 43.86 40.43,39 44.74 41.41,40 45.68 42.45,41 46.65 43.63,42 47.63 44.85,43 48.62 46.11,44 49.65 47.41,45 50.72 48.76,46 52.82 50.18,47 55.08 51.68,48 57.52 53.27,49 60.13 54.94,50 62.92 56.71,51 65.93 58.57,52 69.10 60.52,53 72.48 62.56,54 76.04 64.69,55 79.72 66.91,56 83.55 69.21,57 87.51 71.59,58 91.65 74.08,59 96.02 76.70,60 100.65 79.47,61 105.58 82.44,62 110.82 85.61,63 116.36 89.01,64 122.25 92.65,65 128.52 96.58";
+        const RAW_TERM = "20 4.89 3.28 4.38 2.79 4.42 2.73 4.56 2.75,21 4.95 3.30 4.42 2.81 4.49 2.76 4.66 2.79,22 4.99 3.32 4.47 2.83 4.56 2.79 4.76 2.83,23 5.03 3.34 4.52 2.85 4.64 2.82 4.87 2.88,24 5.06 3.36 4.57 2.87 4.73 2.86 5.00 2.94,25 5.09 3.37 4.64 2.90 4.83 2.90 5.13 3.00,26 5.13 3.40 4.72 2.93 4.94 2.95 5.29 3.07,27 5.18 3.42 4.81 2.96 5.07 3.00 5.46 3.15,28 5.25 3.44 4.91 3.00 5.21 3.06 5.65 3.23,29 5.34 3.47 5.04 3.05 5.38 3.13 5.87 3.33,30 5.45 3.51 5.18 3.10 5.56 3.21 6.11 3.44,31 5.58 3.55 5.33 3.17 5.76 3.30 6.37 3.55,32 5.72 3.60 5.50 3.24 5.98 3.41 6.65 3.69,33 5.88 3.66 5.69 3.32 6.23 3.52 6.97 3.83,34 6.05 3.73 5.90 3.42 6.50 3.64 7.31 3.99,35 6.24 3.81 6.13 3.52 6.79 3.78 7.68 4.18,36 6.44 3.91 6.37 3.64 7.12 3.93 8.09 4.38,37 6.67 4.01 6.65 3.77 7.47 4.10 8.53 4.61,38 6.91 4.13 6.94 3.91 7.85 4.28 9.01 4.86,39 7.17 4.26 7.27 4.07 8.27 4.48 9.54 5.14,40 7.46 4.41 7.63 4.24 8.72 4.71 10.12 5.46,41 7.78 4.56 8.02 4.42 9.22 4.96 10.77 5.81,42 8.14 4.73 8.45 4.63 9.76 5.24 11.48 6.20,43 8.53 4.92 8.92 4.85 10.35 5.55 12.27 6.64,44 8.96 5.11 9.43 5.10 11.01 5.90 13.14 7.14,45 9.44 5.33 9.99 5.37 11.72 6.29 14.11 7.70,46 9.95 5.56 10.59 5.68 12.52 6.73 0 0,47 10.51 5.82 11.25 6.02 13.39 7.22 0 0,48 11.11 6.11 11.97 6.41 14.37 7.77 0 0,49 11.77 6.44 12.76 6.85 15.45 8.40 0 0,50 12.47 6.80 13.63 7.34 16.66 9.11 0 0,51 13.24 7.22 14.60 7.90 0 0 0 0,52 14.08 7.70 15.68 8.54 0 0 0 0,53 15.01 8.24 16.89 9.25 0 0 0 0,54 16.04 8.85 18.25 10.06 0 0 0 0,55 17.19 9.54 19.78 10.99 0 0 0 0,56 18.50 10.31 0 0 0 0 0 0,57 19.97 11.19 0 0 0 0 0 0,58 21.65 12.18 0 0 0 0 0 0,59 23.54 13.30 0 0 0 0 0 0";
+
+        const baseRateMapPayLife = {}; RAW_PAY_LIFE.split(',').forEach(l => { const p = l.split(' '); baseRateMapPayLife[+p[0]] = { M10: +p[1], F10: +p[2], M15: +p[3], F15: +p[4], M20: +p[5], F20: +p[6] }; });
+        const baseRateMap20Pay = {}; RAW_20PAY.split(',').forEach(l => { const p = l.split(' '); baseRateMap20Pay[+p[0]] = { M: +p[1], F: +p[2] }; });
+        const baseRateMapProCare = {}; RAW_PROCARE.split(',').forEach(l => { const p = l.split(' '); baseRateMapProCare[+p[0]] = { M: +p[1], F: +p[2] }; });
+        const baseRateMapCISuper1099 = {}; RAW_CISUPER_1099.split(',').forEach(l => { const p = l.split(' '); baseRateMapCISuper1099[+p[0]] = { M: +p[1], F: +p[2] }; });
+        const baseRateMapCISuper2099 = {}; RAW_CISUPER_2099.split(',').forEach(l => { const p = l.split(' '); baseRateMapCISuper2099[+p[0]] = { M: +p[1], F: +p[2] }; });
+        
+        const baseRateMapTerm = {};
+        RAW_TERM.split(',').forEach(l => {
+            const p = l.split(' ');
+            baseRateMapTerm[+p[0]] = {
+                M5: +p[1] || 0, F5: +p[2] || 0,
+                M10: +p[3] || 0, F10: +p[4] || 0,
+                M15: +p[5] || 0, F15: +p[6] || 0,
+                M20: +p[7] || 0, F20: +p[8] || 0
+            };
+        });
+
+        // LEGACY PRESTIGE PLUS DATA & INTERPOLATION
+        const legacyPrestigePoints = {
+          0: [22.13, 17.19, 15.37, 12.66, 12.67, 10.92, 21.02, 16.33, 13.83, 11.39, 11.40, 9.83],
+          1: [22.32, 17.42, 15.53, 12.80, 12.73, 10.97, 21.20, 16.55, 13.98, 11.52, 11.46, 9.87],
+          2: [22.69, 17.79, 15.80, 12.96, 12.92, 10.99, 21.56, 16.90, 14.22, 11.66, 11.63, 9.89],
+          3: [23.06, 18.14, 16.09, 13.15, 13.11, 11.07, 21.91, 17.23, 14.48, 11.84, 11.80, 9.96],
+          4: [23.45, 18.52, 16.39, 13.36, 13.32, 11.19, 22.28, 17.59, 14.75, 12.02, 11.99, 10.07],
+          5: [23.86, 18.91, 16.72, 13.57, 13.55, 11.32, 22.67, 17.96, 15.05, 12.21, 12.20, 10.19],
+          10: [26.20, 21.19, 18.55, 14.88, 14.87, 12.33, 24.89, 20.13, 16.70, 13.39, 13.38, 11.10],
+          15: [29.01, 23.50, 20.85, 16.50, 16.49, 13.63, 27.56, 22.33, 18.77, 14.85, 14.84, 12.27],
+          20: [31.42, 25.63, 22.58, 17.98, 17.84, 14.69, 29.85, 24.35, 20.32, 16.18, 16.06, 13.22],
+          25: [35.51, 29.86, 25.50, 21.37, 20.29, 16.75, 33.73, 28.37, 22.95, 19.23, 18.26, 15.08],
+          30: [39.55, 33.52, 28.53, 23.92, 22.67, 18.81, 37.57, 31.84, 25.68, 21.53, 20.40, 16.93],
+          35: [44.52, 37.69, 32.22, 27.08, 25.57, 21.50, 42.29, 35.81, 29.00, 24.37, 23.01, 19.35],
+          40: [50.57, 42.93, 36.45, 30.99, 28.99, 24.57, 48.04, 40.78, 32.81, 27.89, 26.09, 22.11],
+          45: [57.49, 49.42, 41.61, 35.61, 33.43, 28.29, 54.62, 46.95, 37.45, 32.05, 30.09, 25.46],
+          50: [65.80, 56.97, 47.88, 41.09, 39.45, 32.87, 62.51, 54.12, 43.09, 36.98, 35.51, 29.58],
+          55: [75.43, 66.06, 54.86, 47.94, 45.93, 39.49, 71.66, 62.76, 49.37, 43.15, 41.34, 35.54],
+          60: [86.36, 76.71, 62.37, 55.82, 53.59, 47.00, 82.04, 72.87, 56.13, 50.24, 48.23, 42.30],
+          65: [97.80, 89.34, 67.89, 64.96, 60.48, 56.64, 92.91, 84.87, 61.10, 58.46, 54.43, 50.98],
+          70: [119.38, 106.56, 94.16, 82.41, 87.49, 73.03, 113.41, 101.23, 84.74, 74.17, 78.74, 65.73],
+          75: [146.47, 133.17, 125.01, 110.40, 119.05, 99.74]
+        };
+
+        function getLegacyRate(age, isMale, term, sumAssured) {
+            const getVal = (a) => {
+                let keys = Object.keys(legacyPrestigePoints).map(Number).sort((a,b)=>a-b);
+                if(legacyPrestigePoints[a]) return legacyPrestigePoints[a];
+                let lower = keys.filter(k => k < a).pop();
+                let upper = keys.filter(k => k > a).shift();
+                if(lower === undefined) return legacyPrestigePoints[upper];
+                if(upper === undefined) return legacyPrestigePoints[lower];
+                let ratio = (a - lower) / (upper - lower);
+                return legacyPrestigePoints[lower].map((val, idx) => val + (legacyPrestigePoints[upper][idx] - val) * ratio);
+            }
+            let vals = getVal(age);
+            let offset = (sumAssured >= 20000000) ? 6 : 0;
+            let termOffset = (term === 10) ? 0 : (term === 15) ? 2 : 4;
+            let genderOffset = isMale ? 0 : 1;
+            return vals[offset + termOffset + genderOffset];
+        }
+
+        const CI_PLUS_RATES = [{min:0,max:15,M:2.62,F:2.27},{min:16,max:20,M:2.76,F:2.06},{min:21,max:25,M:2.89,F:2.15},{min:26,max:30,M:3.16,F:2.55},{min:31,max:35,M:3.84,F:3.53},{min:36,max:40,M:5.23,F:4.60},{min:41,max:45,M:10.19,F:6.38},{min:46,max:50,M:15.92,F:10.17},{min:51,max:55,M:25.38,F:15.92},{min:56,max:60,M:42.31,F:26.09},{min:61,max:65,M:61.04,F:35.81},{min:66,max:70,M:81.76,F:51.71},{min:71,max:75,M:112.64,F:73.52}];
+        const CI_TOPUP_RATES = [{min:0,max:15,M:0.65,F:0.46},{min:16,max:20,M:0.57,F:1.04},{min:21,max:25,M:0.66,F:2.02},{min:26,max:30,M:1.14,F:2.68},{min:31,max:35,M:1.65,F:3.51},{min:36,max:40,M:2.52,F:3.26},{min:41,max:45,M:7.07,F:3.82},{min:46,max:50,M:12.52,F:5.34},{min:51,max:55,M:23.25,F:8.25},{min:56,max:60,M:35.62,F:12.14},{min:61,max:65,M:44.95,F:14.97},{min:66,max:70,M:59.23,F:20.50},{min:71,max:75,M:68.73,F:25.72}];
+        const MULTI_PAY_CI_RATES = [{min:0,max:15,M:3.96,F:3.53},{min:16,max:20,M:3.95,F:3.20},{min:21,max:25,M:4.44,F:3.77},{min:26,max:30,M:4.88,F:4.31},{min:31,max:35,M:5.78,F:5.84},{min:36,max:40,M:7.69,F:6.84},{min:41,max:45,M:15.47,F:9.30},{min:46,max:50,M:25.80,F:15.32},{min:51,max:55,M:46.62,F:27.71},{min:56,max:60,M:77.55,F:42.68},{min:61,max:65,M:118.80,F:63.53},{min:66,max:70,M:145.10,F:91.02},{min:71,max:75,M:203.80,F:135.19}];
+        const TOTAL_CARE_RATES = [{min:0,max:5,M:2.35,F:1.60},{min:6,max:10,M:0.65,F:0.30},{min:11,max:15,M:0.59,F:0.23},{min:16,max:20,M:0.57,F:0.29},{min:21,max:25,M:0.61,F:0.41},{min:26,max:30,M:0.68,F:0.42},{min:31,max:35,M:0.83,F:0.39},{min:36,max:40,M:1.06,F:0.51},{min:41,max:45,M:1.40,F:0.74},{min:46,max:50,M:1.90,F:0.99},{min:51,max:55,M:3.11,F:1.45},{min:56,max:60,M:6.07,F:2.69},{min:61,max:65,M:11.27,F:6.02},{min:66,max:70,M:18.79,F:11.30},{min:71,max:75,M:32.03,F:21.98}];
+        const HEALTH_CANCER_RATES = [{min:0,max:15,M:730,F:730},{min:16,max:35,M:1314,F:1314},{min:36,max:40,M:2199,F:2199},{min:41,max:45,M:3254,F:3254},{min:46,max:50,M:4729,F:4729},{min:51,max:55,M:6991,F:6991},{min:56,max:60,M:10050,F:10050},{min:61,max:65,M:13752,F:13752},{min:66,max:70,M:30000,F:17500},{min:71,max:75,M:39000,F:23000}];
+        const CARE_FOR_CANCER_RATES = [{min:0,max:15,M:119.51,F:119.51},{min:16,max:20,M:135.16,F:139.33},{min:21,max:25,M:155.84,F:182.50},{min:26,max:30,M:189.26,F:253.40},{min:31,max:35,M:253.51,F:375.68},{min:36,max:40,M:386.81,F:462.17},{min:41,max:45,M:512.13,F:669.69},{min:46,max:50,M:800.92,F:921.10},{min:51,max:55,M:1282.87,F:1247.10},{min:56,max:60,M:1869.36,F:1774.95},{min:61,max:65,M:2876.04,F:2115.73},{min:66,max:70,M:4676.21,F:3143.33},{min:71,max:75,M:6152.96,F:3834.44}];
+        const TPD_RATES = [{min:0,max:15,M:0.10,F:0.08},{min:16,max:20,M:0.23,F:0.08},{min:21,max:25,M:0.28,F:0.09},{min:26,max:30,M:0.31,F:0.10},{min:31,max:35,M:0.36,F:0.12},{min:36,max:40,M:0.46,F:0.16},{min:41,max:45,M:0.61,F:0.24},{min:46,max:50,M:0.87,F:0.36},{min:51,max:55,M:1.25,F:0.55},{min:56,max:60,M:1.86,F:0.91},{min:61,max:65,M:2.98,F:1.58},{min:66,max:70,M:5.03,F:3.01},{min:71,max:75,M:8.78,F:6.01}];
+        
+        // --- เปลี่ยนให้เริ่มรับอายุขั้นต่ำที่ 6 ปี ---
+        const HB_RATES = [{min:6,max:15,class12:90,class3:90,class4:90},{min:16,max:75,class12:150,class3:187,class4:225}];
+        const HB_EXTRA_RATES = [{min:0,max:20,M:360,F:325},{min:21,max:35,M:210,F:280},{min:36,max:40,M:230,F:290},{min:41,max:45,M:250,F:320},{min:46,max:50,M:290,F:370},{min:51,max:55,M:350,F:400},{min:56,max:60,M:420,F:460},{min:61,max:65,M:510,F:490},{min:66,max:70,M:710,F:600},{min:71,max:75,M:910,F:710},{min:76,max:79,M:1140,F:840}];
+
+        const HEALTH_HAPPY_ADULT = [{min:11,max:15,'1M':{M:16400,F:14400},'5M':{M:20200,F:18200},'15M':{M:25500,F:21600},'25M':{M:33400,F:27900}},{min:16,max:20,'1M':{M:13500,F:15200},'5M':{M:16500,F:19100},'15M':{M:20100,F:23100},'25M':{M:26200,F:30300}},{min:21,max:25,'1M':{M:13700,F:17200},'5M':{M:16900,F:21500},'15M':{M:21600,F:27000},'25M':{M:28000,F:35300}},{min:26,max:30,'1M':{M:14700,F:17500},'5M':{M:18300,F:21800},'15M':{M:26100,F:30600},'25M':{M:33800,F:38000}},{min:31,max:35,'1M':{M:15100,F:18400},'5M':{M:18900,F:22700},'15M':{M:29400,F:34200},'25M':{M:37800,F:42300}},{min:36,max:40,'1M':{M:17000,F:20400},'5M':{M:20800,F:25100},'15M':{M:31800,F:37200},'25M':{M:40900,F:46000}},{min:41,max:45,'1M':{M:19200,F:22300},'5M':{M:23800,F:27800},'15M':{M:36000,F:42900},'25M':{M:47300,F:53600}},{min:46,max:50,'1M':{M:21600,F:24500},'5M':{M:26700,F:30400},'15M':{M:40200,F:46500},'25M':{M:52400,F:60700}},{min:51,max:55,'1M':{M:28300,F:28500},'5M':{M:35000,F:35200},'15M':{M:50100,F:50700},'25M':{M:65300,F:65500}},{min:56,max:59,'1M':{M:34100,F:34400},'5M':{M:42300,F:42500},'15M':{M:63900,F:65100},'25M':{M:83000,F:84600}},{min:60,max:65,'1M':{M:40900,F:41500},'5M':{M:50600,F:50800},'15M':{M:72300,F:73500},'25M':{M:94100,F:95700}},{min:66,max:70,'1M':{M:59400,F:60800},'5M':{M:72100,F:74000},'15M':{M:105000,F:107100},'25M':{M:136700,F:139300}},{min:71,max:75,'1M':{M:85400,F:88200},'5M':{M:104000,F:107500},'15M':{M:152100,F:155700},'25M':{M:197800,F:202000}}];
+
+        const HEALTH_HAPPY_KIDS = {
+          '10K': [{min:0,max:5,'1M':{M:53500,F:47600},'5M':{M:73900,F:64400},'15M':{M:104700,F:88500},'25M':{M:143000,F:123000}},{min:6,max:10,'1M':{M:28600,F:24600},'5M':{M:39400,F:34500},'15M':{M:58500,F:47700},'25M':{M:82500,F:67900}}],
+          '30K': [{min:0,max:5,'1M':{M:33500,F:27600},'5M':{M:53900,F:44400},'15M':{M:84600,F:68400},'25M':{M:123000,F:103000}},{min:6,max:10,'1M':{M:14500,F:11000},'5M':{M:22400,F:17500},'15M':{M:40500,F:29700},'25M':{M:64500,F:49900}}]
+        };
+
+        const HEALTH_SAVER_RATES = [{min:11,max:15,'200K':{M:10100,F:8500},'300K':{M:12300,F:10500},'400K':{M:16400,F:14400},'500K':{M:20200,F:18200}},{min:16,max:20,'200K':{M:7300,F:7400},'300K':{M:8700,F:9700},'400K':{M:10600,F:12000},'500K':{M:13700,F:15000}},{min:21,max:25,'200K':{M:6900,F:8600},'300K':{M:8400,F:10600},'400K':{M:10400,F:14400},'500K':{M:13400,F:18100}},{min:26,max:30,'200K':{M:7400,F:9100},'300K':{M:8900,F:11300},'400K':{M:13500,F:17100},'500K':{M:16600,F:21000}},{min:31,max:35,'200K':{M:7500,F:9200},'300K':{M:9300,F:11700},'400K':{M:14700,F:18000},'500K':{M:18900,F:22700}},{min:36,max:40,'200K':{M:8500,F:10400},'300K':{M:10200,F:11900},'400K':{M:15200,F:18500},'500K':{M:20100,F:25100}},{min:41,max:45,'200K':{M:10000,F:12100},'300K':{M:11400,F:13800},'400K':{M:17100,F:21700},'500K':{M:21600,F:26500}},{min:46,max:50,'200K':{M:11800,F:14300},'300K':{M:13000,F:16000},'400K':{M:18000,F:23200},'500K':{M:24700,F:29200}},{min:51,max:55,'200K':{M:15400,F:15500},'300K':{M:17200,F:17200},'400K':{M:24300,F:25600},'500K':{M:30900,F:34100}},{min:56,max:60,'200K':{M:20600,F:20800},'300K':{M:24200,F:24400},'400K':{M:30700,F:31000},'500K':{M:40500,F:40900}},{min:61,max:65,'200K':{M:27300,F:27600},'300K':{M:31000,F:31300},'400K':{M:47000,F:47500},'500K':{M:56600,F:57200}},{min:66,max:70,'200K':{M:37500,F:37900},'300K':{M:47100,F:47600},'400K':{M:65900,F:66600},'500K':{M:81000,F:81800}},{min:71,max:75,'200K':{M:53700,F:54200},'300K':{M:67400,F:68100},'400K':{M:94400,F:95300},'500K':{M:115800,F:117000}}];
+
+        const HEALTH_STARTER_BEGIN = [{min:0,max:5,'1500':{M:32700,F:32600},'2000':{M:46200,F:45900},'2500':{M:55600,F:53600},'3500':{M:70500,F:68000},'4500':{M:86700,F:83700}},{min:6,max:10,'1500':{M:17200,F:16200},'2000':{M:25100,F:23700},'2500':{M:28900,F:27400},'3500':{M:36400,F:34300},'4500':{M:43700,F:41300}},{min:11,max:15,'1500':{M:8500,F:7700},'2000':{M:12900,F:11900},'2500':{M:15300,F:14000},'3500':{M:19300,F:17600},'4500':{M:23000,F:21500}},{min:16,max:20,'1500':{M:3700,F:3900},'2000':{M:6300,F:7100},'2500':{M:7600,F:8100},'3500':{M:9800,F:11000},'4500':{M:11600,F:13400}},{min:21,max:25,'1500':{M:3800,F:4200},'2000':{M:6400,F:7700},'2500':{M:7800,F:9000},'3500':{M:9900,F:11900},'4500':{M:11700,F:14500}},{min:26,max:30,'1500':{M:4100,F:4300},'2000':{M:7000,F:8200},'2500':{M:8600,F:9400},'3500':{M:11100,F:12400},'4500':{M:13100,F:15000}},{min:31,max:35,'1500':{M:4300,F:4800},'2000':{M:7300,F:8300},'2500':{M:9000,F:10100},'3500':{M:11700,F:13400},'4500':{M:13700,F:15700}},{min:36,max:40,'1500':{M:4500,F:5100},'2000':{M:7700,F:8600},'2500':{M:9400,F:10500},'3500':{M:12100,F:13700},'4500':{M:14300,F:16200}},{min:41,max:45,'1500':{M:4900,F:5500},'2000':{M:8200,F:9200},'2500':{M:10100,F:11400},'3500':{M:13000,F:15000},'4500':{M:15300,F:17600}},{min:46,max:50,'1500':{M:5100,F:5700},'2000':{M:8600,F:10000},'2500':{M:10500,F:12300},'3500':{M:13500,F:16200},'4500':{M:15900,F:19700}},{min:51,max:55,'1500':{M:7100,F:7700},'2000':{M:11900,F:13000},'2500':{M:14500,F:16000},'3500':{M:18700,F:20700},'4500':{M:22000,F:24500}},{min:56,max:60,'1500':{M:9500,F:10400},'2000':{M:15600,F:16700},'2500':{M:19000,F:20500},'3500':{M:24400,F:26700},'4500':{M:28900,F:31600}},{min:61,max:65,'1500':{M:13700,F:15000},'2000':{M:20900,F:22500},'2500':{M:25600,F:27700},'3500':{M:33000,F:36200},'4500':{M:39000,F:42900}},{min:66,max:70,'1500':{M:19800,F:21600},'2000':{M:28700,F:30900},'2500':{M:35000,F:38000},'3500':{M:45300,F:50000},'4500':{M:55700,F:59300}},{min:71,max:75,'1500':{M:29700,F:32400},'2000':{M:41100,F:44600},'2500':{M:50200,F:54700},'3500':{M:65200,F:72200},'4500':{M:77300,F:85700}}];
+
+        const HEALTH_STARTER_BALANCED = [{min:11,max:15,'1500':{M:9400,F:8500},'2000':{M:14300,F:13200},'2500':{M:17000,F:15500},'3500':{M:21400,F:19500},'4500':{M:25500,F:23800}},{min:16,max:20,'1500':{M:4100,F:4300},'2000':{M:7000,F:7800},'2500':{M:8400,F:9000},'3500':{M:10800,F:12200},'4500':{M:12800,F:14800}},{min:21,max:25,'1500':{M:4200,F:4600},'2000':{M:7100,F:8500},'2500':{M:8600,F:10000},'3500':{M:11000,F:13200},'4500':{M:13000,F:16100}},{min:26,max:30,'1500':{M:4500,F:4700},'2000':{M:7700,F:9100},'2500':{M:9500,F:10400},'3500':{M:12300,F:13700},'4500':{M:14500,F:16600}},{min:31,max:35,'1500':{M:4700,F:5300},'2000':{M:8100,F:9200},'2500':{M:10000,F:11200},'3500':{M:12900,F:14800},'4500':{M:15200,F:17400}},{min:36,max:40,'1500':{M:5000,F:5600},'2000':{M:8500,F:9500},'2500':{M:10400,F:11600},'3500':{M:13400,F:15200},'4500':{M:15800,F:18000}},{min:41,max:45,'1500':{M:5400,F:6100},'2000':{M:9100,F:10200},'2500':{M:11200,F:12600},'3500':{M:14400,F:16600},'4500':{M:17000,F:19500}},{min:46,max:50,'1500':{M:5600,F:6200},'2000':{M:9500,F:11100},'2500':{M:11600,F:13600},'3500':{M:14900,F:18000},'4500':{M:17600,F:21800}},{min:51,max:55,'1500':{M:7800,F:8500},'2000':{M:13200,F:14400},'2500':{M:16100,F:17700},'3500':{M:20700,F:23000},'4500':{M:24400,F:27200}},{min:56,max:60,'1500':{M:10500,F:11500},'2000':{M:17300,F:18500},'2500':{M:21100,F:22700},'3500':{M:27100,F:29600},'4500':{M:32100,F:35100}},{min:61,max:65,'1500':{M:15200,F:16600},'2000':{M:23200,F:25000},'2500':{M:28400,F:30700},'3500':{M:36600,F:40200},'4500':{M:43300,F:47600}},{min:66,max:70,'1500':{M:22000,F:24000},'2000':{M:31800,F:34300},'2500':{M:38800,F:42200},'3500':{M:50300,F:55500},'4500':{M:61800,F:65800}},{min:71,max:75,'1500':{M:33000,F:36000},'2000':{M:45600,F:49500},'2500':{M:55700,F:60700},'3500':{M:72400,F:80200},'4500':{M:85800,F:95200}}];
+
+        const PLAN_DICT = {
+          'HAPPY_1M':{key:'1M',name:'Health Happy 1 ล้าน',room:'1,500'},
+          'HAPPY_5M':{key:'5M',name:'Health Happy 5 ล้าน',room:'3,000'},
+          'HAPPY_15M':{key:'15M',name:'Health Happy 15 ล้าน',room:'6,000'},
+          'HAPPY_25M':{key:'25M',name:'Health Happy 25 ล้าน',room:'9,000'},
+          'SAVER_200K':{key:'200K',name:'Health Saver 200,000',room:'1,500',opd:'ไม่มี'},
+          'SAVER_300K':{key:'300K',name:'Health Saver 300,000',room:'2,000',opd:'ไม่มี'},
+          'SAVER_400K':{key:'400K',name:'Health Saver 400,000',room:'3,000',opd:'1,000 / ครั้ง'},
+          'SAVER_500K':{key:'500K',name:'Health Saver 500,000',room:'4,000',opd:'1,500 / ครั้ง'},
+          'STARTER_1500':{key:'1500',name:'Health Starter 1,500'},
+          'STARTER_2000':{key:'2000',name:'Health Starter 2,000'},
+          'STARTER_2500':{key:'2500',name:'Health Starter 2,500'},
+          'STARTER_3500':{key:'3500',name:'Health Starter 3,500'},
+          'STARTER_4500':{key:'4500',name:'Health Starter 4,500'}
+        };
+
+        // --- HELPER COMPONENTS ---
+        const ToggleBox = ({ checked, onChange, title, badge, desc, color, children }) => (
+          <div className={`p-4 rounded-xl border-2 transition-all ${checked ? `border-${color}-500 bg-${color}-50` : `border-gray-200 bg-white hover:border-${color}-200`}`}>
+            <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={onChange}>
+                <div className="flex items-center gap-2">
+                  <span className={`font-bold ${checked ? `text-${color}-700` : 'text-gray-800'}`}>{title}</span>
+                  {badge && <span className={`text-[10px] bg-${color}-200 text-${color}-800 px-2 py-0.5 rounded-full`}>{badge}</span>}
+                </div>
+                {checked ? <CheckCircle2 className={`text-${color}-500`} size={20}/> : <Circle className="text-gray-300" size={20}/>}
+            </div>
+            {desc && <p className="text-xs text-gray-500 mt-1">{desc}</p>}
+            {checked && children && <div className={`mt-3 pt-3 border-t border-${color}-200/60`}>{children}</div>}
+          </div>
+        );
+
+        const SumInput = ({ label, value, onChange, color }) => (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <label className={`text-xs font-semibold text-${color}-900 whitespace-nowrap`}>{label}</label>
+            <input type="text" value={value} onChange={onChange} className={`w-full sm:w-40 p-1.5 bg-white border border-${color}-300 rounded-lg font-bold text-${color}-900 focus:border-${color}-500 focus:outline-none text-sm shadow-inner`} />
+          </div>
+        );
+
+        function App() {
+          // App Mode
+          const [appMode, setAppMode] = useState('SINGLE'); // 'SINGLE' or 'COMPARE'
+
+          // Global
+          const [basePlan, setBasePlan] = useState('PAY_LIFE_PLUS');
+          const [gender, setGender] = useState('M');
+          const [age, setAge] = useState(30); 
+          const [term, setTerm] = useState(20);
+          const [sumAssured, setSumAssured] = useState(500000);
+          const [sumStr, setSumStr] = useState("500,000");
+          
+          const isKid = age < 11;
+
+          // Health
+          const [includeHealthRider, setIncludeHealthRider] = useState(true);
+          const [riderCategory, setRiderCategory] = useState('HAPPY'); 
+          const [happyPlan, setHappyPlan] = useState('5M');
+          const [happyDeductible, setHappyDeductible] = useState('10K'); 
+          const [saverPlan, setSaverPlan] = useState('400K');
+          const [starterType, setStarterType] = useState('BEGIN'); 
+          const [starterPlan, setStarterPlan] = useState('2500');
+
+          // Compare State
+          const [selectedComparePlans, setSelectedComparePlans] = useState(['SAVER_400K', 'HAPPY_5M']);
+
+          // CI / TPD
+          const [includeCIRider, setIncludeCIRider] = useState(false);
+          const [ciSumAssured, setCiSumAssured] = useState(500000);
+          const [ciSumStr, setCiSumStr] = useState("500,000");
+          const [multiPaySumAssured, setMultiPaySumAssured] = useState(500000);
+          const [multiPaySumStr, setMultiPaySumStr] = useState("500,000");
+          const [tpdSumAssured, setTpdSumAssured] = useState(500000);
+          const [tpdSumStr, setTpdSumStr] = useState("500,000");
+          
+          const [includeCIPlus, setIncludeCIPlus] = useState(true);
+          const [includeCITopUp, setIncludeCITopUp] = useState(false);
+          const [includeMultiPayCIPlus, setIncludeMultiPayCIPlus] = useState(false);
+          const [includeTPD, setIncludeTPD] = useState(false);
+          
+          const [includeHealthCancer, setIncludeHealthCancer] = useState(false);
+          const [healthCancerUnits, setHealthCancerUnits] = useState(1); 
+          const [includeCareForCancer, setIncludeCareForCancer] = useState(false);
+          const [careForCancerUnits, setCareForCancerUnits] = useState(1); 
+
+          // HB
+          const [includeHBRider, setIncludeHBRider] = useState(false);
+          const [occupationClass, setOccupationClass] = useState('1'); 
+          const [includeHB, setIncludeHB] = useState(true);
+          const [hbAmount, setHbAmount] = useState(1000);
+          const [hbAmountStr, setHbAmountStr] = useState("1,000");
+          const [includeHBExtra, setIncludeHBExtra] = useState(false);
+          const [hbExtraAmount, setHbExtraAmount] = useState(1000);
+          const [hbExtraAmountStr, setHbExtraAmountStr] = useState("1,000");
+
+          // Data for Compare Table (Memoized to react to isKid)
+          const healthBenefitsCompare = useMemo(() => {
+            return {
+              'STARTER_1500': { group: 'STARTER', name: 'Health Starter 1,500', limit: 'ตามตาราง', type: 'แยกค่าใช้จ่าย', room: '1,500', icu: '3,000 (2 เท่า)', med2: '14,000', medsHome: '1,000/ครั้ง', doctor: '600/วัน', surgery: '50,000', opd: 'ไม่มี', ci: 'ไม่มี' },
+              'STARTER_2000': { group: 'STARTER', name: 'Health Starter 2,000', limit: 'ตามตาราง', type: 'แยกค่าใช้จ่าย', room: '2,000', icu: '4,000 (2 เท่า)', med2: '18,000', medsHome: '1,000/ครั้ง', doctor: '700/วัน', surgery: '60,000', opd: '4,000/ปี', ci: 'ไม่มี' },
+              'STARTER_2500': { group: 'STARTER', name: 'Health Starter 2,500', limit: 'ตามตาราง', type: 'แยกค่าใช้จ่าย', room: '2,500', icu: '5,000 (2 เท่า)', med2: '20,000', medsHome: '1,000/ครั้ง', doctor: '800/วัน', surgery: '80,000', opd: '5,000/ปี', ci: 'ไม่มี' },
+              'STARTER_3500': { group: 'STARTER', name: 'Health Starter 3,500', limit: 'ตามตาราง', type: 'แยกค่าใช้จ่าย', room: '3,500', icu: '7,000 (2 เท่า)', med2: '25,000', medsHome: '1,000/ครั้ง', doctor: '900/วัน', surgery: '90,000', opd: '6,000/ปี', ci: 'ไม่มี' },
+              'STARTER_4500': { group: 'STARTER', name: 'Health Starter 4,500', limit: 'ตามตาราง', type: 'แยกค่าใช้จ่าย', room: '4,500', icu: '9,000 (2 เท่า)', med2: '30,000', medsHome: '1,000/ครั้ง', doctor: '1,000/วัน', surgery: '100,000', opd: '7,000/ปี', ci: 'ไม่มี' },
+
+              'SAVER_200K': { group: 'SAVER', name: 'Health Saver 200,000', limit: '200,000', type: 'กึ่งเหมาจ่าย', room: '1,500', icu: '9,000 (6 เท่า)', med2: '25,000', medsHome: '5,000/ครั้ง', doctor: 'ตามจริง', surgery: 'ตามจริง', opd: 'ไม่มี', ci: 'เพิ่มวงเงิน 2 เท่า' },
+              'SAVER_300K': { group: 'SAVER', name: 'Health Saver 300,000', limit: '300,000', type: 'กึ่งเหมาจ่าย', room: '2,000', icu: '12,000 (6 เท่า)', med2: '35,000', medsHome: '5,000/ครั้ง', doctor: 'ตามจริง', surgery: 'ตามจริง', opd: 'ไม่มี', ci: 'เพิ่มวงเงิน 2 เท่า' },
+              'SAVER_400K': { group: 'SAVER', name: 'Health Saver 400,000', limit: '400,000', type: 'กึ่งเหมาจ่าย', room: '3,000', icu: '18,000 (6 เท่า)', med2: '40,000', medsHome: '5,000/ครั้ง', doctor: 'ตามจริง', surgery: 'ตามจริง', opd: '1,000/30ครั้ง', ci: 'เพิ่มวงเงิน 2 เท่า' },
+              'SAVER_500K': { group: 'SAVER', name: 'Health Saver 500,000', limit: '500,000', type: 'กึ่งเหมาจ่าย', room: '4,000', icu: '24,000 (6 เท่า)', med2: '50,000', medsHome: '5,000/ครั้ง', doctor: 'ตามจริง', surgery: 'ตามจริง', opd: '1,500/30ครั้ง', ci: 'เพิ่มวงเงิน 2 เท่า' },
+              
+              'HAPPY_1M': { group: 'HAPPY', name: isKid ? 'Health Happy Kids 1 ล้าน' : 'Health Happy 1 ล้าน', limit: '1,000,000', type: 'เหมาจ่าย', room: '1,500', icu: 'เหมาจ่ายตามจริง', med2: isKid ? 'จำกัด 20,000/หมวดย่อย' : 'เหมาจ่ายตามจริง', medsHome: '20,000/ครั้ง', doctor: '1,000/วัน', surgery: 'เหมาจ่ายตามจริง', opd: 'ไม่มี', ci: 'เพิ่มวงเงิน 2 เท่า' },
+              'HAPPY_5M': { group: 'HAPPY', name: isKid ? 'Health Happy Kids 5 ล้าน' : 'Health Happy 5 ล้าน', limit: '5,000,000', type: 'เหมาจ่าย', room: '3,000', icu: 'เหมาจ่ายตามจริง', med2: isKid ? 'จำกัด 25,000/หมวดย่อย' : 'เหมาจ่ายตามจริง', medsHome: '20,000/ครั้ง', doctor: '2,000/วัน', surgery: 'เหมาจ่ายตามจริง', opd: 'ไม่มี', ci: 'เพิ่มวงเงิน 2 เท่า' },
+              'HAPPY_15M': { group: 'HAPPY', name: isKid ? 'Health Happy Kids 15 ล้าน' : 'Health Happy 15 ล้าน', limit: '15,000,000', type: 'เหมาจ่าย', room: '6,000', icu: 'เหมาจ่ายตามจริง', med2: isKid ? 'จำกัด 30,000/หมวดย่อย' : 'เหมาจ่ายตามจริง', medsHome: '20,000/ครั้ง', doctor: '4,000/วัน', surgery: 'เหมาจ่ายตามจริง', opd: 'ไม่มี', ci: 'เพิ่มวงเงิน 2 เท่า' },
+              'HAPPY_25M': { group: 'HAPPY', name: isKid ? 'Health Happy Kids 25 ล้าน' : 'Health Happy 25 ล้าน', limit: '25,000,000', type: 'เหมาจ่าย', room: '9,000', icu: 'เหมาจ่ายตามจริง', med2: isKid ? 'จำกัด 40,000/หมวดย่อย' : 'เหมาจ่ายตามจริง', medsHome: 'เหมาจ่ายตามจริง', doctor: '6,000/วัน', surgery: 'เหมาจ่ายตามจริง', opd: '2,000/30ครั้ง', ci: 'เพิ่มวงเงิน 2 เท่า' }
+            };
+          }, [isKid]);
+
+          // Handlers
+          const handleGlobalSumChange = (e) => {
+            const val = e.target.value.replace(/\D/g, '');
+            if (val) {
+              const numVal = parseInt(val, 10);
+              setSumAssured(numVal); setSumStr(numVal.toLocaleString('en-US'));
+              // Auto Sync
+              if (ciSumAssured === sumAssured) { setCiSumAssured(numVal); setCiSumStr(numVal.toLocaleString('en-US')); }
+              if (multiPaySumAssured === sumAssured) { setMultiPaySumAssured(numVal); setMultiPaySumStr(numVal.toLocaleString('en-US')); }
+              if (tpdSumAssured === sumAssured) { setTpdSumAssured(numVal); setTpdSumStr(numVal.toLocaleString('en-US')); }
+            } else {
+              setSumAssured(0); setSumStr('');
+            }
+          };
+
+          const handleInputChange = (e, setVal, setStr) => {
+            const val = e.target.value.replace(/\D/g, '');
+            if (val) {
+              setVal(parseInt(val, 10)); setStr(parseInt(val, 10).toLocaleString('en-US'));
+            } else {
+              setVal(0); setStr('');
+            }
+          };
+
+          const handleBasePlanChange = (e) => {
+            const newPlan = e.target.value;
+            setBasePlan(newPlan);
+            
+            // Adjust terms when switching plans
+            if (newPlan === 'CI_SUPERCARE') {
+              if (term !== 10 && term !== 20) setTerm(20);
+              // CI SuperCare restrict riders
+              setIncludeHealthRider(false);
+              setIncludeHBRider(false);
+              setIncludeMultiPayCIPlus(false);
+              setIncludeHealthCancer(false);
+              setIncludeCareForCancer(false);
+            } else if (newPlan === 'PAY_LIFE_PLUS' || newPlan === 'LEGACY_PRESTIGE') {
+              // Keeps 10, 15, 20
+              if (term !== 10 && term !== 15 && term !== 20) setTerm(20);
+            } else if (newPlan === 'TERM') {
+              if (![5, 10, 15, 20].includes(term)) setTerm(20);
+              if (sumAssured < 350000) {
+                  setSumAssured(350000); setSumStr("350,000");
+                  if (ciSumAssured === sumAssured) { setCiSumAssured(350000); setCiSumStr("350,000"); }
+                  if (multiPaySumAssured === sumAssured) { setMultiPaySumAssured(350000); setMultiPaySumStr("350,000"); }
+                  if (tpdSumAssured === sumAssured) { setTpdSumAssured(350000); setTpdSumStr("350,000"); }
+              }
+            }
+
+            // Auto-adjust sum assured for Legacy Prestige Plus to minimum 10M
+            if (newPlan === 'LEGACY_PRESTIGE' && sumAssured < 10000000) {
+              setSumAssured(10000000);
+              setSumStr("10,000,000");
+              if (ciSumAssured === sumAssured) { setCiSumAssured(10000000); setCiSumStr("10,000,000"); }
+              if (multiPaySumAssured === sumAssured) { setMultiPaySumAssured(10000000); setMultiPaySumStr("10,000,000"); }
+              if (tpdSumAssured === sumAssured) { setTpdSumAssured(10000000); setTpdSumStr("10,000,000"); }
+            }
+          };
+
+          useEffect(() => {
+            if (isKid) {
+              setStarterType(prev => prev === 'BALANCED' ? 'BEGIN' : prev);
+              setRiderCategory(prev => prev === 'SAVER' ? 'HAPPY' : prev);
+              
+              // Remove Saver from compare mode if age < 11
+              setSelectedComparePlans(prev => prev.filter(p => !p.startsWith('SAVER')));
+            }
+            
+            // --- เงื่อนไขอายุ 0-5 ปี บังคับปิด HB ---
+            if (age <= 5 && includeHB) {
+              setIncludeHB(false);
+            }
+          }, [isKid, age, includeHB]);
+
+          const validation = useMemo(() => {
+            if (basePlan === 'PAY_LIFE_PLUS') {
+              const minSum = term === 20 ? 150000 : 300000;
+              if (sumAssured < minSum) return { isValid: false, msg: `ทุนขั้นต่ำ Pay Life Plus ${term} ปี คือ ${minSum.toLocaleString()} บ.` };
+              if (sumAssured > 9999999) return { isValid: false, msg: `ทุนสูงสุด Pay Life Plus คือ 9,999,999 บ.` };
+              if (age > 75) return { isValid: false, msg: 'อายุรับประกันไม่เกิน 75 ปี' };
+            } else if (basePlan === '20PAY_LIFE') {
+              if (sumAssured < 100000) return { isValid: false, msg: `ทุนขั้นต่ำ 20Pay Life คือ 100,000 บ.` };
+              if (sumAssured > 9999999) return { isValid: false, msg: `ทุนสูงสุด 20Pay Life คือ 9,999,999 บ.` };
+              if (age > 70) return { isValid: false, msg: 'อายุรับประกันไม่เกิน 70 ปี' };
+            } else if (basePlan === 'PROCARE') {
+              if (sumAssured < 200000) return { isValid: false, msg: `ทุนขั้นต่ำ CI ProCare คือ 200,000 บ.` };
+              if (sumAssured > 10000000) return { isValid: false, msg: `ทุนสูงสุด CI ProCare คือ 10,000,000 บ.` };
+              if (age > 60) return { isValid: false, msg: 'อายุรับประกันไม่เกิน 60 ปี' };
+            } else if (basePlan === 'CI_SUPERCARE') {
+              if (sumAssured < 200000) return { isValid: false, msg: `ทุนขั้นต่ำ CI SuperCare คือ 200,000 บ.` };
+              if (sumAssured > 4999999) return { isValid: false, msg: `ทุนสูงสุด CI SuperCare คือ 4,999,999 บ.` };
+              if (age > 65) return { isValid: false, msg: 'อายุรับประกันไม่เกิน 65 ปี' };
+            } else if (basePlan === 'LEGACY_PRESTIGE') {
+              if (sumAssured < 10000000) return { isValid: false, msg: `ทุนขั้นต่ำ Legacy Prestige Plus คือ 10,000,000 บ.` };
+              if (sumAssured > 1000000000) return { isValid: false, msg: `ทุนสูงสุด Legacy Prestige Plus คือ 1,000,000,000 บ.` };
+              if (age > 75) return { isValid: false, msg: 'อายุรับประกันไม่เกิน 75 ปี' };
+            } else if (basePlan === 'TERM') {
+              if (sumAssured < 350000) return { isValid: false, msg: `ทุนขั้นต่ำ Term คือ 350,000 บ.` };
+              if (age < 20) return { isValid: false, msg: 'อายุรับประกัน Term ขั้นต่ำ 20 ปี' };
+              if (term === 5 && age > 59) return { isValid: false, msg: 'อายุรับประกัน Term 5 ปี สูงสุด 59 ปี' };
+              if (term === 10 && age > 55) return { isValid: false, msg: 'อายุรับประกัน Term 10 ปี สูงสุด 55 ปี' };
+              if (term === 15 && age > 50) return { isValid: false, msg: 'อายุรับประกัน Term 15 ปี สูงสุด 50 ปี' };
+              if (term === 20 && age > 45) return { isValid: false, msg: 'อายุรับประกัน Term 20 ปี สูงสุด 45 ปี' };
+            }
+            return { isValid: true, msg: '' };
+          }, [basePlan, sumAssured, term, age]);
+
+          const ciPremiumData = useMemo(() => {
+            if (!validation.isValid || !includeCIRider) return { ciPlus: 0, ciTopUp: 0, multiPay: 0, totalCare: 0, tpd: 0, healthCancer: 0, careForCancer: 0, totalCI: 0 };
+            
+            let res = { ciPlus: 0, ciTopUp: 0, multiPay: 0, totalCare: 0, tpd: 0, healthCancer: 0, careForCancer: 0, totalCI: 0 };
+            const getRate = (table) => table.find(b => age >= b.min && age <= b.max)?.[gender] || 0;
+
+            if (includeCIPlus) res.ciPlus = (ciSumAssured / 1000) * getRate(CI_PLUS_RATES);
+            
+            if (includeCITopUp) res.ciTopUp = ((ciSumAssured * 0.4) / 1000) * getRate(CI_TOPUP_RATES);
+            
+            if (includeMultiPayCIPlus) {
+              res.multiPay = (multiPaySumAssured / 1000) * getRate(MULTI_PAY_CI_RATES);
+              res.totalCare = (multiPaySumAssured / 1000) * getRate(TOTAL_CARE_RATES);
+            }
+            if (includeTPD) res.tpd = (tpdSumAssured / 1000) * getRate(TPD_RATES);
+            if (includeHealthCancer) res.healthCancer = healthCancerUnits * (getRate(HEALTH_CANCER_RATES) / 10);
+            if (includeCareForCancer) res.careForCancer = careForCancerUnits * getRate(CARE_FOR_CANCER_RATES);
+
+            res.totalCI = res.ciPlus + res.ciTopUp + res.multiPay + res.totalCare + res.tpd + res.healthCancer + res.careForCancer;
+            return res;
+          }, [validation.isValid, includeCIRider, includeCIPlus, ciSumAssured, gender, age, includeCITopUp, includeMultiPayCIPlus, multiPaySumAssured, includeTPD, tpdSumAssured, includeHealthCancer, healthCancerUnits, includeCareForCancer, careForCancerUnits]);
+
+          const hbPremiumData = useMemo(() => {
+            if (!validation.isValid || !includeHBRider) return { hb: 0, hbExtra: 0, totalHB: 0 };
+            let res = { hb: 0, hbExtra: 0, totalHB: 0 };
+
+            if (includeHB) {
+              const b = HB_RATES.find(b => age >= b.min && age <= b.max);
+              if (b) {
+                let rate = (age >= 6 && age <= 15) ? 90 : (occupationClass === '3' ? b.class3 : occupationClass === '4' ? b.class4 : b.class12);
+                res.hb = (hbAmount / 100) * rate;
+              }
+            }
+            if (includeHBExtra) {
+              const b = HB_EXTRA_RATES.find(b => age >= b.min && age <= b.max);
+              if (b) res.hbExtra = (hbExtraAmount / 100) * b[gender];
+            }
+            res.totalHB = res.hb + res.hbExtra;
+            return res;
+          }, [validation.isValid, includeHBRider, includeHB, hbAmount, age, occupationClass, includeHBExtra, hbExtraAmount, gender]);
+
+          const baseNetPremium = useMemo(() => {
+            if (!validation.isValid) return 0;
+            let baseRate = 0, discount = 0;
+            
+            if (basePlan === 'PAY_LIFE_PLUS') {
+              baseRate = baseRateMapPayLife[age]?.[`${gender}${term}`] || 0;
+            } else if (basePlan === '20PAY_LIFE') {
+              baseRate = baseRateMap20Pay[age]?.[gender] || 0;
+              if (sumAssured >= 600000) discount = 2.00; else if (sumAssured >= 250000) discount = 1.00;
+            } else if (basePlan === 'PROCARE') {
+              baseRate = baseRateMapProCare[age]?.[gender] || 0;
+              if (sumAssured >= 5000000) discount = 3.00; else if (sumAssured >= 1000000) discount = 2.25; else if (sumAssured >= 800000) discount = 1.50; else if (sumAssured >= 500000) discount = 0.75;
+            } else if (basePlan === 'CI_SUPERCARE') {
+              if (term === 10) {
+                baseRate = baseRateMapCISuper1099[age]?.[gender] || 0;
+                if (sumAssured >= 1000000) discount = 2.50;
+              } else if (term === 20) {
+                baseRate = baseRateMapCISuper2099[age]?.[gender] || 0;
+                if (sumAssured >= 1000000) discount = 1.50;
+                else if (sumAssured >= 800000) discount = 1.00;
+                else if (sumAssured >= 500000) discount = 0.50;
+              }
+            } else if (basePlan === 'LEGACY_PRESTIGE') {
+              baseRate = getLegacyRate(age, gender === 'M', term, sumAssured);
+            } else if (basePlan === 'TERM') {
+              baseRate = baseRateMapTerm[age]?.[`${gender}${term}`] || 0;
+              if (sumAssured >= 1000000) discount = 1.00;
+              else if (sumAssured >= 500000) discount = 0.50;
+            }
+            
+            return (sumAssured / 1000) * Math.max(0, baseRate - discount);
+          }, [validation.isValid, basePlan, age, gender, term, sumAssured]);
+
+          const getHealthPremium = (planId) => {
+            if (!validation.isValid || !planId) return 0;
+            
+            if (planId.startsWith('HAPPY')) {
+              const pKey = planId.split('_')[1];
+              const band = isKid ? HEALTH_HAPPY_KIDS[happyDeductible]?.find(b => age >= b.min && age <= b.max) : HEALTH_HAPPY_ADULT.find(b => age >= b.min && age <= b.max);
+              return band?.[pKey]?.[gender] || 0;
+            } 
+            if (planId.startsWith('SAVER')) {
+              const pKey = planId.split('_')[1];
+              return HEALTH_SAVER_RATES.find(b => age >= b.min && age <= b.max)?.[pKey]?.[gender] || 0;
+            }
+            if (planId.startsWith('STARTER')) {
+              const pKey = planId.split('_')[1];
+              const actualType = (isKid && starterType === 'BALANCED') ? 'BEGIN' : starterType;
+              const table = actualType === 'BEGIN' ? HEALTH_STARTER_BEGIN : HEALTH_STARTER_BALANCED;
+              return table.find(b => age >= b.min && age <= b.max)?.[pKey]?.[gender] || 0;
+            }
+            return 0;
+          };
+
+          const toggleComparePlan = (key) => {
+            if (selectedComparePlans.includes(key)) {
+              setSelectedComparePlans(selectedComparePlans.filter(p => p !== key));
+            } else {
+              if (selectedComparePlans.length < 4) {
+                setSelectedComparePlans([...selectedComparePlans, key]);
+              } else {
+                alert('เลือกเปรียบเทียบได้สูงสุด 4 แผนครับ');
+              }
+            }
+          };
+
+          const renderUserInfoBox = () => (
+            <div className="bg-white rounded-3xl p-6 shadow-sm border-2 border-gray-100 mb-6">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">ข้อมูลผู้เอาประกันและแผนหลัก</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-600">เพศ</label>
+                  <select value={gender} onChange={e=>setGender(e.target.value)} className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-medium focus:border-[#D31145] focus:outline-none">
+                    <option value="M">ชาย</option>
+                    <option value="F">หญิง</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-600">อายุ</label>
+                  <input type="number" min="0" max="100" value={age} onChange={e=>setAge(Number(e.target.value))} className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-medium focus:border-[#D31145] focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-600">แผนหลัก</label>
+                  <select value={basePlan} onChange={handleBasePlanChange} className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-medium focus:border-[#D31145] focus:outline-none">
+                    <option value="PAY_LIFE_PLUS">Pay Life Plus</option>
+                    <option value="20PAY_LIFE">20Pay Life</option>
+                    <option value="TERM">Term</option>
+                    <option value="PROCARE">CI ProCare</option>
+                    <option value="CI_SUPERCARE">CI SuperCare</option>
+                    <option value="LEGACY_PRESTIGE">Legacy Prestige Plus (new)</option>
+                  </select>
+                </div>
+                {(basePlan === 'PAY_LIFE_PLUS' || basePlan === 'CI_SUPERCARE' || basePlan === 'LEGACY_PRESTIGE' || basePlan === 'TERM') && (
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-gray-600">ระยะเวลาชำระเบี้ย (ปี)</label>
+                    <select value={term} onChange={e=>setTerm(Number(e.target.value))} className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-medium focus:border-[#D31145] focus:outline-none">
+                      {(basePlan === 'PAY_LIFE_PLUS' || basePlan === 'LEGACY_PRESTIGE') ? (
+                        <>
+                          <option value={10}>10</option>
+                          <option value={15}>15</option>
+                          <option value={20}>20</option>
+                        </>
+                      ) : basePlan === 'TERM' ? (
+                        <>
+                          <option value={5}>5</option>
+                          <option value={10}>10</option>
+                          <option value={15}>15</option>
+                          <option value={20}>20</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value={10}>10</option>
+                          <option value={20}>20</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                )}
+                <div className="md:col-span-2 lg:col-span-1">
+                  <label className="block text-sm font-semibold mb-2 text-gray-600">ทุนประกันหลัก (บาท)</label>
+                  <input type="text" value={sumStr} onChange={handleGlobalSumChange} className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-medium focus:border-[#D31145] focus:outline-none" />
+                </div>
+              </div>
+            </div>
+          );
+
+          const renderSingleMode = () => {
+            let riderHealthPremium = 0;
+            let riderHealthName = '';
+
+            if (includeHealthRider && validation.isValid && basePlan !== 'CI_SUPERCARE') {
+              const pKey = riderCategory === 'HAPPY' ? happyPlan : riderCategory === 'SAVER' ? saverPlan : starterPlan;
+              riderHealthPremium = getHealthPremium(`${riderCategory}_${pKey}`);
+              riderHealthName = riderCategory === 'HAPPY' ? (isKid ? `Health Happy Kids (${PLAN_DICT[`HAPPY_${pKey}`].name})` : PLAN_DICT[`HAPPY_${pKey}`].name) :
+                                riderCategory === 'SAVER' ? PLAN_DICT[`SAVER_${pKey}`].name :
+                                `Health Starter แบบ ${starterType} (${PLAN_DICT[`STARTER_${pKey}`].name})`;
+            }
+
+            const totalPremium = baseNetPremium + riderHealthPremium + ciPremiumData.totalCI + hbPremiumData.totalHB;
+            const basePlanNameDisplay = basePlan === 'PAY_LIFE_PLUS' ? `Pay Life Plus` : 
+                                        basePlan === '20PAY_LIFE' ? '20Pay Life' : 
+                                        basePlan === 'CI_SUPERCARE' ? `CI SuperCare ${term}/99` : 
+                                        basePlan === 'LEGACY_PRESTIGE' ? `Legacy Prestige Plus ${term} ปี` : 
+                                        basePlan === 'TERM' ? `Term ${term} ปี` :
+                                        'CI ProCare';
+
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in-up">
+                {/* Left: Settings */}
+                <div className="lg:col-span-7 space-y-6">
+                  
+                  {/* Health Rider Box */}
+                  {basePlan !== 'CI_SUPERCARE' && (
+                    <div className={`bg-white rounded-2xl p-6 shadow-sm border-2 transition-all ${includeHealthRider ? 'border-[#D31145]' : 'border-gray-100'}`}>
+                      <div className="flex justify-between items-center mb-6 cursor-pointer" onClick={() => setIncludeHealthRider(!includeHealthRider)}>
+                        <h2 className={`text-xl font-bold flex items-center gap-2 ${includeHealthRider ? 'text-[#D31145]' : 'text-gray-800'}`}>
+                          <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs ${includeHealthRider ? 'bg-red-100 text-[#D31145]' : 'bg-gray-100 text-gray-500'}`}>2</span>
+                          แนบสัญญาเพิ่มเติมสุขภาพ
+                        </h2>
+                        <CheckCircle2 className={includeHealthRider ? "text-[#D31145]" : "text-gray-300"} size={28}/>
+                      </div>
+
+                      {includeHealthRider && (
+                        <div className="space-y-6 border-t border-gray-100 pt-4">
+                          <div className="flex flex-col sm:flex-row p-1 bg-gray-100 rounded-xl gap-1">
+                            <button onClick={() => setRiderCategory('HAPPY')} className={`flex-1 py-3 px-2 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 transition-all ${riderCategory === 'HAPPY' ? 'bg-white text-[#D31145] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                              <Stethoscope size={16} /> Health Happy
+                            </button>
+                            <button onClick={() => !isKid && setRiderCategory('SAVER')} disabled={isKid} className={`flex-1 py-3 px-2 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 transition-all ${isKid ? 'opacity-50 cursor-not-allowed' : riderCategory === 'SAVER' ? 'bg-white text-rose-500 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                              <HeartPulse size={16} /> Health Saver
+                            </button>
+                            <button onClick={() => setRiderCategory('STARTER')} className={`flex-1 py-3 px-2 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 transition-all ${riderCategory === 'STARTER' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                              <Activity size={16} /> Health Starter
+                            </button>
+                          </div>
+
+                          {isKid && riderCategory !== 'HAPPY' && riderCategory !== 'STARTER' && (
+                            <p className="text-amber-600 text-sm bg-amber-50 p-3 rounded-lg flex items-center gap-2"><AlertCircle size={16}/> Health Saver รับอายุ 11 ปีขึ้นไป</p>
+                          )}
+
+                          {riderCategory === 'HAPPY' && (
+                            <div className="space-y-4 animate-fade-in-up">
+                              {isKid && (
+                                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 flex gap-4 items-center">
+                                  <label className="text-sm font-semibold text-orange-800">ความรับผิดส่วนแรก (ต่อปี):</label>
+                                  <select value={happyDeductible} onChange={(e)=>setHappyDeductible(e.target.value)} className="p-2 rounded-lg border-orange-200 text-sm font-medium focus:outline-none">
+                                    <option value="10K">10,000 บาท</option><option value="30K">30,000 บาท</option>
+                                  </select>
+                                </div>
+                              )}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {['1M','5M','15M','25M'].map(key => {
+                                  const isSelected = happyPlan === key;
+                                  return (
+                                    <div key={key} onClick={() => setHappyPlan(key)} className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? (isKid ? 'border-orange-500 bg-orange-50' : 'border-[#D31145] bg-red-50') : 'border-gray-200 hover:border-gray-300'}`}>
+                                      <div className="flex justify-between items-center mb-2">
+                                        <span className={`font-bold text-lg ${isSelected ? (isKid ? 'text-orange-600' : 'text-[#D31145]') : 'text-gray-800'}`}>{PLAN_DICT[`HAPPY_${key}`].name}</span>
+                                        {isSelected ? <CheckCircle2 className={isKid ? "text-orange-500" : "text-[#D31145]"} size={22}/> : <Circle className="text-gray-300" size={22}/>}
+                                      </div>
+                                      <p className="text-xs text-gray-500">• ค่าห้อง {PLAN_DICT[`HAPPY_${key}`].room} บาท/วัน</p>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {riderCategory === 'SAVER' && !isKid && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fade-in-up">
+                              {['200K','300K','400K','500K'].map(key => {
+                                const isSelected = saverPlan === key;
+                                return (
+                                  <div key={key} onClick={() => setSaverPlan(key)} className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'border-rose-500 bg-rose-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                                    <div className="flex justify-between items-center mb-2">
+                                      <span className={`font-bold text-lg ${isSelected ? 'text-rose-600' : 'text-gray-800'}`}>{PLAN_DICT[`SAVER_${key}`].name}</span>
+                                      {isSelected ? <CheckCircle2 className="text-rose-500" size={22}/> : <Circle className="text-gray-300" size={22}/>}
+                                    </div>
+                                    <p className="text-xs text-gray-500">• ค่าห้อง {PLAN_DICT[`SAVER_${key}`].room} บาท/วัน</p>
+                                    {PLAN_DICT[`SAVER_${key}`].opd !== 'ไม่มี' && <p className="text-xs text-gray-500">• OPD {PLAN_DICT[`SAVER_${key}`].opd}</p>}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+
+                          {riderCategory === 'STARTER' && (
+                            <div className="space-y-4 animate-fade-in-up">
+                              <div className="flex gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                                <button onClick={() => setStarterType('BEGIN')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${starterType==='BEGIN'?'bg-blue-600 text-white shadow':'text-gray-500 hover:bg-gray-100'}`}>BEGIN (10%/30%)</button>
+                                <button onClick={() => !isKid && setStarterType('BALANCED')} disabled={isKid} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isKid ? 'opacity-40': starterType==='BALANCED'?'bg-blue-600 text-white shadow':'text-gray-500 hover:bg-gray-100'}`}>BALANCED (0%/20%)</button>
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {['1500','2000','2500','3500','4500'].map(key => {
+                                  const isSelected = starterPlan === key;
+                                  return (
+                                    <div key={key} onClick={() => setStarterPlan(key)} className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                                      <p className={`font-bold text-center ${isSelected ? 'text-blue-700' : 'text-gray-700'}`}>{PLAN_DICT[`STARTER_${key}`].name}</p>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* CI Rider Box */}
+                  <div className={`bg-white rounded-2xl p-6 shadow-sm border-2 transition-all ${includeCIRider ? 'border-orange-400' : 'border-gray-100'}`}>
+                    <div className="flex justify-between items-center mb-6 cursor-pointer" onClick={() => setIncludeCIRider(!includeCIRider)}>
+                      <h2 className={`text-xl font-bold flex items-center gap-2 ${includeCIRider ? 'text-orange-600' : 'text-gray-800'}`}>
+                        <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs ${includeCIRider ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-500'}`}>{basePlan === 'CI_SUPERCARE' ? '2' : '3'}</span>
+                        แนบสัญญาเพิ่มเติมโรคร้ายแรง
+                      </h2>
+                      <CheckCircle2 className={includeCIRider ? "text-orange-500" : "text-gray-300"} size={28}/>
+                    </div>
+
+                    {includeCIRider && (
+                      <div className="space-y-4 border-t border-gray-100 pt-4 animate-fade-in-up">
+                        
+                        {(basePlan === 'PROCARE' || basePlan === 'CI_SUPERCARE') && (
+                          <div className="bg-blue-50 p-3 rounded-lg flex items-start gap-2 text-sm text-blue-800">
+                            <Info size={16} className="flex-shrink-0 mt-0.5" />
+                            <p><b>{basePlan === 'PROCARE' ? 'CI ProCare' : 'CI SuperCare'}</b> มีความคุ้มครองโรคร้ายแรงระดับรุนแรงรวมอยู่ในเบี้ยประกันหลักแล้ว การซื้อสัญญาเพิ่มเติมจะเป็นการเพิ่มวงเงินคุ้มครอง</p>
+                          </div>
+                        )}
+
+                        {basePlan === 'CI_SUPERCARE' && (
+                          <div className="bg-orange-50 p-3 rounded-lg flex items-start gap-2 text-sm text-orange-800">
+                            <ShieldAlert size={16} className="flex-shrink-0 mt-0.5" />
+                            <p><b>CI SuperCare</b> สามารถแนบสัญญาเพิ่มเติมได้เฉพาะ <b>CI Plus</b>, <b>CI Top Up</b> และ <b>TPD</b> เท่านั้น</p>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                          <div className="col-span-1 md:col-span-2 mt-1 mb-1 flex justify-between items-center">
+                            <h3 className="text-sm font-bold text-orange-600 flex items-center gap-1"><ShieldAlert size={16}/> กลุ่ม เจอ จ่าย จบ</h3>
+                          </div>
+
+                          <ToggleBox checked={includeCIPlus} onChange={()=>setIncludeCIPlus(!includeCIPlus)} title="CI Plus" desc="คุ้มครอง 44 โรคร้ายแรงระดับรุนแรง" color="orange">
+                            <SumInput label="ทุนประกัน CI Plus (บาท):" value={ciSumStr} onChange={(e)=>handleInputChange(e, setCiSumAssured, setCiSumStr)} color="orange" />
+                          </ToggleBox>
+                          
+                          <ToggleBox checked={includeCITopUp} onChange={()=>setIncludeCITopUp(!includeCITopUp)} title="CI Top Up" desc="คุ้มครองระดับต้น-ปานกลาง 18 โรค (40% ของ CI Plus)" color="orange">
+                            <p className="text-xs text-orange-700 bg-orange-100/50 p-2 rounded">ทุนเอาประกัน: <b>{(ciSumAssured * 0.4).toLocaleString('en-US')}</b> บ.</p>
+                          </ToggleBox>
+                          
+                          <ToggleBox checked={includeTPD} onChange={()=>setIncludeTPD(!includeTPD)} title="TPD" desc="คุ้มครองกรณีทุพพลภาพถาวรสิ้นเชิง" color="orange">
+                            <SumInput label="ทุนประกัน TPD (บาท):" value={tpdSumStr} onChange={(e)=>handleInputChange(e, setTpdSumAssured, setTpdSumStr)} color="orange" />
+                          </ToggleBox>
+
+                          {basePlan !== 'CI_SUPERCARE' && (
+                            <>
+                              <div className="col-span-1 md:col-span-2 mt-4 mb-1">
+                                <h3 className="text-sm font-bold text-purple-600 flex items-center gap-1"><Layers size={16}/> กลุ่ม เจอ จ่าย หลายจบ</h3>
+                              </div>
+
+                              <div className="col-span-1 md:col-span-2">
+                                <ToggleBox checked={includeMultiPayCIPlus} onChange={()=>setIncludeMultiPayCIPlus(!includeMultiPayCIPlus)} title="Multi-Pay CI Plus" badge="Multi-Pay CI + Total Care" desc="เคลมโรคร้ายได้สูงสุด 11 ครั้ง (รวม 800%) พร้อมผลประโยชน์ดูแลต่อเนื่องและเงินชดเชยรายเดือน" color="purple">
+                                    <SumInput label="ทุนประกัน Multi-Pay (บาท):" value={multiPaySumStr} onChange={(e)=>handleInputChange(e, setMultiPaySumAssured, setMultiPaySumStr)} color="purple" />
+                                </ToggleBox>
+                              </div>
+
+                              <div className="col-span-1 md:col-span-2 mt-4 mb-1">
+                                <h3 className="text-sm font-bold text-pink-600 flex items-center gap-1"><Heart size={16}/> กลุ่ม โรคมะเร็ง</h3>
+                              </div>
+
+                              <ToggleBox checked={includeHealthCancer} onChange={()=>setIncludeHealthCancer(!includeHealthCancer)} title="Health Cancer" desc="คุ้มครองมะเร็งและเพื่อน (เช่น ตับแข็ง, โปลิโอ)" color="pink">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <label className="text-xs text-pink-900 font-medium">จำนวนหน่วย (1 หน่วย = 100k):</label>
+                                    <input type="number" min="1" max="100" value={healthCancerUnits} onChange={(e) => setHealthCancerUnits(parseInt(e.target.value)||1)} className="w-16 p-1 border border-pink-300 rounded text-sm text-center font-bold text-pink-700 focus:outline-none" />
+                                </div>
+                                <p className="text-xs text-pink-800 bg-pink-100/50 inline-block px-2 py-1 rounded">🛌 นอนรักษา รพ. ได้คืนละ <b>{(healthCancerUnits*1000).toLocaleString()}</b> บ.</p>
+                              </ToggleBox>
+
+                              <ToggleBox checked={includeCareForCancer} onChange={()=>setIncludeCareForCancer(!includeCareForCancer)} title="Care for Cancer" desc="ค่าชดเชยรายวันสำหรับการเข้ารับการบำบัดรักษาโรคมะเร็ง" color="pink">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <label className="text-xs text-pink-900 font-medium">จำนวนหน่วย (1 หน่วย = 100k):</label>
+                                    <input type="number" min="1" max="100" value={careForCancerUnits} onChange={(e) => setCareForCancerUnits(parseInt(e.target.value)||1)} className="w-16 p-1 border border-pink-300 rounded text-sm text-center font-bold text-pink-700 focus:outline-none" />
+                                </div>
+                                <div className="flex flex-col gap-1 mt-1">
+                                    <p className="text-xs text-pink-800 bg-pink-100/50 inline-block px-2 py-1 rounded w-fit">🛌 นอน รพ. ได้ <b>{(careForCancerUnits*2000).toLocaleString()}</b> บ./คืน</p>
+                                    <p className="text-xs text-pink-800 bg-pink-100/50 inline-block px-2 py-1 rounded w-fit">🚶‍♀️ ไม่นอน (OPD) ได้ <b>{(careForCancerUnits*500).toLocaleString()}</b> บ./วัน</p>
+                                </div>
+                              </ToggleBox>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* HB Rider Box */}
+                  {basePlan !== 'CI_SUPERCARE' && (
+                    <div className={`bg-white rounded-2xl p-6 shadow-sm border-2 transition-all ${includeHBRider ? 'border-emerald-400' : 'border-gray-100'}`}>
+                      <div className="flex justify-between items-center mb-6 cursor-pointer" onClick={() => setIncludeHBRider(!includeHBRider)}>
+                        <h2 className={`text-xl font-bold flex items-center gap-2 ${includeHBRider ? 'text-emerald-600' : 'text-gray-800'}`}>
+                          <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs ${includeHBRider ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-500'}`}>4</span>
+                          แนบสัญญาเพิ่มเติมชดเชยรายได้ (HB)
+                        </h2>
+                        <CheckCircle2 className={includeHBRider ? "text-emerald-500" : "text-gray-300"} size={28}/>
+                      </div>
+
+                      {includeHBRider && (
+                        <div className="space-y-4 border-t border-gray-100 pt-4 animate-fade-in-up">
+                          <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                              <label className="text-sm font-semibold text-emerald-900 whitespace-nowrap">ขั้นอาชีพของผู้เอาประกัน:</label>
+                              <select value={occupationClass} onChange={(e) => setOccupationClass(e.target.value)} disabled={age < 16} className={`w-full sm:w-48 p-2 bg-white border border-emerald-300 rounded-lg font-bold text-emerald-900 focus:border-emerald-500 focus:outline-none text-sm shadow-inner ${age < 16 ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                                <option value="1">ขั้น 1 หรือ 2</option><option value="3">ขั้น 3</option><option value="4">ขั้น 4</option>
+                              </select>
+                              {age < 16 && <span className="text-xs text-emerald-600 bg-white px-2 py-1 rounded-md border border-emerald-200">อายุต่ำกว่า 16 ปี ใช้เรทมาตรฐานเดียว</span>}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-4">
+                            
+                            {/* --- เงื่อนไขอายุ 0-5 ปี (ซ่อน HB แต่โชว์แบบ Disabled) --- */}
+                            {age <= 5 ? (
+                              <div className="p-4 rounded-xl border-2 border-gray-200 bg-gray-50 opacity-60">
+                                <div className="flex justify-between items-center mb-1">
+                                  <div className="flex items-center gap-2">
+                                    <BedDouble size={18} className="text-gray-400"/>
+                                    <span className="font-bold text-gray-500">HB</span>
+                                  </div>
+                                  <Circle className="text-gray-300" size={20}/>
+                                </div>
+                                <p className="text-xs text-red-500 mt-1">* อายุ 0-5 ปี ไม่สามารถแนบชดเชยรายวัน HB ได้</p>
+                              </div>
+                            ) : (
+                              <ToggleBox checked={includeHB} onChange={()=>setIncludeHB(!includeHB)} title={<span className="flex items-center gap-2"><BedDouble size={18}/> HB</span>} desc="ค่าชดเชยรายวัน กรณีเข้ารักษาตัวเป็นผู้ป่วยในของโรงพยาบาล" color="emerald">
+                                <SumInput label="เงินชดเชยรายวัน (บาท):" value={hbAmountStr} onChange={(e)=>handleInputChange(e, setHbAmount, setHbAmountStr)} color="emerald" />
+                              </ToggleBox>
+                            )}
+
+                            <ToggleBox checked={includeHBExtra} onChange={()=>setIncludeHBExtra(!includeHBExtra)} title={<span className="flex items-center gap-2"><BedDouble size={18}/> HB Extra</span>} desc="ชดเชยรายวัน (ดีต่อใจ) ให้เพิ่มเมื่อเข้า ICU / ผ่าตัด / โรคร้ายแรง / กลับบ้าน / เสียชีวิต" color="emerald">
+                              <SumInput label="เงินชดเชยอ้างอิง (บาท):" value={hbExtraAmountStr} onChange={(e)=>handleInputChange(e, setHbExtraAmount, setHbExtraAmountStr)} color="emerald" />
+                              <ul className="text-xs text-emerald-800 bg-emerald-50 px-3 py-3 rounded-lg border border-emerald-200 mt-3 space-y-2">
+                                  <li>• ชดเชยรายวันปกติ / Day Case รับ <b>{hbExtraAmount.toLocaleString()}</b> บ./วัน (1X)</li>
+                                  <li>• พักห้อง ICU รับ <b>{(hbExtraAmount * 3).toLocaleString()}</b> บ./วัน (3X)</li>
+                                  <li>• ผู้ป่วยในที่มีการผ่าตัด รับเพิ่ม <b>{(hbExtraAmount * 5).toLocaleString()}</b> บ. (5X)</li>
+                                  <li>• ตรวจพบ 13 โรคร้ายแรง รับ <b>{(hbExtraAmount * 25).toLocaleString()}</b> บ. (25X)</li>
+                                  <li>• ค่ายากลับบ้าน รับ <b>{hbExtraAmount.toLocaleString()}</b> บ./ครั้ง (1X)</li>
+                                  <li>• กรณีเสียชีวิต รับ <b>{(hbExtraAmount * 10).toLocaleString()}</b> บ. (10X)</li>
+                              </ul>
+                            </ToggleBox>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                </div>
+
+                {/* Right: Summary */}
+                <div className="lg:col-span-5">
+                  <div className="bg-gray-900 rounded-3xl p-6 md:p-8 shadow-xl text-white sticky top-6 border border-gray-800">
+                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-gray-100 border-b border-gray-800 pb-4">
+                      <Calculator className="text-[#D31145]" /> สรุปเบี้ยประกันภัย (รายปี)
+                    </h2>
+                    {validation.isValid ? (
+                      <div className="space-y-6">
+                        <div className="flex justify-between items-center text-gray-300">
+                          <span>1. {basePlanNameDisplay} <span className="text-xs opacity-60">(ทุน {sumStr})</span></span>
+                          <span className="font-semibold text-white">{baseNetPremium.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span>
+                        </div>
+
+                        {includeHealthRider && basePlan !== 'CI_SUPERCARE' && (
+                          <div className="flex justify-between items-start text-gray-300">
+                            <span className="pr-4">2. สุขภาพ <span className="text-sm block text-gray-400 mt-0.5">{riderHealthName}</span></span>
+                            <span className="font-semibold text-white whitespace-nowrap">{riderHealthPremium.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span>
+                          </div>
+                        )}
+
+                        {includeCIRider && ciPremiumData.totalCI > 0 && (
+                          <div className="flex flex-col gap-2 text-gray-300">
+                            <span className="pr-4 border-b border-gray-700 pb-1 mb-1 inline-block w-fit">
+                              {basePlan === 'CI_SUPERCARE' ? '2. สัญญาเพิ่มเติม' : '3. โรคร้ายแรงและทุพพลภาพ'}
+                            </span>
+                            {includeCIPlus && <div className="flex justify-between pl-4 text-sm"><span className="text-gray-400">CI Plus <span className="text-xs opacity-60">({ciSumStr})</span></span><span className="text-orange-300 font-medium">{ciPremiumData.ciPlus.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span></div>}
+                            {includeCITopUp && <div className="flex justify-between pl-4 text-sm"><span className="text-gray-400">CI Top Up <span className="text-xs opacity-60">({(ciSumAssured * 0.4).toLocaleString('en-US')})</span></span><span className="text-orange-300 font-medium">{ciPremiumData.ciTopUp.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span></div>}
+                            {includeTPD && <div className="flex justify-between pl-4 text-sm"><span className="text-gray-400">TPD <span className="text-xs opacity-60">({tpdSumStr})</span></span><span className="text-orange-300 font-medium">{ciPremiumData.tpd.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span></div>}
+                            {includeMultiPayCIPlus && basePlan !== 'CI_SUPERCARE' && (
+                              <><div className="flex justify-between pl-4 text-sm"><span className="text-gray-400">Multi-Pay CI <span className="text-xs opacity-60">({multiPaySumStr})</span></span><span className="text-purple-300 font-medium">{ciPremiumData.multiPay.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span></div>
+                                <div className="flex justify-between pl-4 text-sm"><span className="text-gray-400">Total Care <span className="text-xs opacity-60">({multiPaySumStr})</span></span><span className="text-purple-300 font-medium">{ciPremiumData.totalCare.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span></div></>
+                            )}
+                            {includeHealthCancer && basePlan !== 'CI_SUPERCARE' && <div className="flex justify-between pl-4 text-sm"><span className="text-gray-400">Health Cancer <span className="text-xs opacity-60">({healthCancerUnits} หน่วย)</span></span><span className="text-pink-300 font-medium">{ciPremiumData.healthCancer.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span></div>}
+                            {includeCareForCancer && basePlan !== 'CI_SUPERCARE' && <div className="flex justify-between pl-4 text-sm"><span className="text-gray-400">Care for Cancer <span className="text-xs opacity-60">({careForCancerUnits} หน่วย)</span></span><span className="text-pink-300 font-medium">{ciPremiumData.careForCancer.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span></div>}
+                          </div>
+                        )}
+
+                        {includeHBRider && hbPremiumData.totalHB > 0 && basePlan !== 'CI_SUPERCARE' && (
+                          <div className="flex flex-col gap-2 text-gray-300">
+                            <span className="pr-4 border-b border-gray-700 pb-1 mb-1 inline-block w-fit">4. ชดเชยรายได้ (HB)</span>
+                            {includeHB && <div className="flex justify-between pl-4 text-sm"><span className="text-gray-400">HB <span className="text-xs opacity-60">(วันละ {hbAmountStr} บ.)</span></span><span className="text-emerald-300 font-medium">{hbPremiumData.hb.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span></div>}
+                            {includeHBExtra && <div className="flex justify-between pl-4 text-sm"><span className="text-gray-400">HB Extra <span className="text-xs opacity-60">(วันละ {hbExtraAmountStr} บ.)</span></span><span className="text-emerald-300 font-medium">{hbPremiumData.hbExtra.toLocaleString('en-US',{maximumFractionDigits:0})} บ.</span></div>}
+                          </div>
+                        )}
+
+                        <div className="pt-6 border-t border-gray-800">
+                          <p className="text-sm text-gray-400 mb-1">รวมต้องชำระรายปี</p>
+                          <p className="text-4xl lg:text-5xl font-bold text-white text-right">
+                            {totalPremium.toLocaleString('en-US',{maximumFractionDigits:0})} <span className="text-xl font-medium text-gray-300">บาท</span>
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-red-400 opacity-80 py-10 text-center flex flex-col items-center gap-2">
+                        <AlertCircle size={32}/> {validation.msg || 'กรุณาระบุข้อมูลให้ถูกต้อง'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          const renderCompareMode = () => {
+            if (basePlan === 'CI_SUPERCARE') {
+              return (
+                <div className="bg-white rounded-2xl p-10 shadow-sm border-2 border-orange-200 text-center animate-fade-in-up">
+                  <ShieldAlert size={48} className="mx-auto text-orange-400 mb-4" />
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">ไม่สามารถเปรียบเทียบแผนสุขภาพได้</h3>
+                  <p className="text-gray-600">แบบประกัน CI SuperCare ไม่สามารถแนบสัญญาเพิ่มเติมสุขภาพได้ครับ<br/>กรุณาเปลี่ยนแผนหลักเป็นแบบอื่น (เช่น Pay Life Plus) เพื่อเปรียบเทียบแผนสุขภาพ</p>
+                </div>
+              );
+            }
+
+            // Generate Columns
+            const cols = selectedComparePlans.map(key => healthBenefitsCompare[key]);
+            
+            // Calculate Premiums for each column
+            const premiumData = selectedComparePlans.map(key => {
+              const healthPremium = getHealthPremium(key);
+              // Base + CI + HB are fixed from global state
+              const totalCI = ciPremiumData.totalCI;
+              const totalHB = hbPremiumData.totalHB;
+              const total = baseNetPremium + healthPremium + totalCI + totalHB;
+              
+              let subtitle = '';
+              if (key.startsWith('STARTER')) subtitle = `(แบบ ${starterType})`;
+              if (key.startsWith('HAPPY') && isKid) subtitle = `(Deduct ${happyDeductible})`;
+
+              return { health: healthPremium, total, subtitle };
+            });
+
+            return (
+              <div className="space-y-6 animate-fade-in-up">
+                
+                {/* Plan Selection Box */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                  <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <CheckSquare className="text-[#D31145]" /> เลือกแผนที่ต้องการเปรียบเทียบ <span className="text-sm font-normal text-gray-500">(เลือกได้สูงสุด 4 แผน)</span>
+                  </h2>
+                  
+                  {/* Additional Options for Compare Mode */}
+                  <div className="flex flex-wrap gap-4 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div className="flex items-center gap-2">
+                        <label className="text-sm font-semibold text-gray-700">Health Starter:</label>
+                        <select value={starterType} onChange={(e) => setStarterType(e.target.value)} className="p-1.5 rounded-lg border-gray-300 text-sm font-medium focus:outline-none">
+                            <option value="BEGIN">Begin</option>
+                            {!isKid && <option value="BALANCED">Balanced</option>}
+                        </select>
+                    </div>
+                    {isKid && (
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-semibold text-gray-700">Happy Deductible:</label>
+                            <select value={happyDeductible} onChange={(e) => setHappyDeductible(e.target.value)} className="p-1.5 rounded-lg border-gray-300 text-sm font-medium focus:outline-none">
+                                <option value="10K">10,000 บาท</option>
+                                <option value="30K">30,000 บาท</option>
+                            </select>
+                        </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {Object.keys(healthBenefitsCompare).map(key => {
+                      if (isKid && key.startsWith('SAVER')) return null; // Hide Saver for kids
+                      const isSelected = selectedComparePlans.includes(key);
+                      const plan = healthBenefitsCompare[key];
+                      const isHappy = plan.group === 'HAPPY';
+                      const isStarter = plan.group === 'STARTER';
+
+                      return (
+                        <div 
+                          key={key} 
+                          onClick={() => toggleComparePlan(key)}
+                          className={`p-3 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-center items-center text-center gap-1 ${
+                            isSelected 
+                            ? (isHappy ? 'border-[#D31145] bg-red-50' : isStarter ? 'border-blue-500 bg-blue-50' : 'border-rose-500 bg-rose-50') 
+                            : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          {isSelected ? <CheckSquare size={20} className={isHappy ? "text-[#D31145]" : isStarter ? "text-blue-500" : "text-rose-500"} /> : <Square size={20} className="text-gray-300" />}
+                          <span className={`font-bold text-[13px] ${isSelected ? (isHappy ? 'text-[#D31145]' : isStarter ? 'text-blue-700' : 'text-rose-600') : 'text-gray-600'}`}>
+                            {plan.name}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Comparison Table */}
+                {selectedComparePlans.length > 0 && (
+                  <div className="bg-white rounded-2xl shadow-sm border-2 border-gray-100 overflow-hidden">
+                    <div className="bg-gradient-to-r from-[#D31145] to-rose-500 p-4 text-white">
+                      <h2 className="text-xl font-bold flex items-center gap-2"><Table size={24}/> เปรียบเทียบแผนที่เลือก</h2>
+                    </div>
+                    
+                    <div className="overflow-x-auto no-scrollbar">
+                      <table className="w-full text-sm text-left whitespace-nowrap">
+                        <thead>
+                          <tr className="border-b-2 border-gray-200 bg-gray-50">
+                            <th className="sticky left-0 bg-gray-50 p-4 font-bold text-gray-700 min-w-[200px] shadow-[2px_0_5px_rgba(0,0,0,0.03)] z-10">รายการความคุ้มครอง</th>
+                            {cols.map((col, idx) => (
+                              <th key={idx} className={`p-4 font-bold text-center min-w-[160px] ${col.group === 'HAPPY' ? 'text-[#D31145]' : col.group === 'STARTER' ? 'text-blue-600' : 'text-rose-600'}`}>
+                                {col.name.replace('Health ', '')}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[
+                            { label: 'รูปแบบความคุ้มครอง', key: 'type', bg: 'bg-white' },
+                            { label: 'วงเงินค่ารักษา (บาท/ปี)', key: 'limit', bg: 'bg-rose-50 font-bold text-rose-800', valClass: 'font-bold' },
+                            { label: 'ค่าห้อง อาหาร บริการ รพ.', key: 'room', bg: 'bg-white' },
+                            { label: 'ค่าห้อง ICU', key: 'icu', bg: 'bg-gray-50' },
+                            { label: 'ค่ารักษาพยาบาล (หมวด 2)', key: 'med2', bg: 'bg-white' },
+                            { label: 'ค่ายากลับบ้าน', key: 'medsHome', bg: 'bg-gray-50' },
+                            { label: 'ค่าแพทย์ตรวจรักษา', key: 'doctor', bg: 'bg-white' },
+                            { label: 'ค่าผ่าตัด', key: 'surgery', bg: 'bg-gray-50' },
+                            { label: 'OPD ผู้ป่วยนอก', key: 'opd', bg: 'bg-white' },
+                            { label: 'โรคร้ายแรง (CI)', key: 'ci', bg: 'bg-gray-50 text-xs' },
+                          ].map((row, rIdx) => (
+                            <tr key={rIdx} className={`border-b border-gray-100 ${row.bg}`}>
+                              <td className={`sticky left-0 p-4 font-medium text-gray-700 shadow-[2px_0_5px_rgba(0,0,0,0.02)] z-10 ${row.bg}`}>{row.label}</td>
+                              {cols.map((col, cIdx) => (
+                                <td key={cIdx} className={`p-4 text-center text-gray-600 ${row.valClass || ''}`}>{col[row.key]}</td>
+                              ))}
+                            </tr>
+                          ))}
+                          
+                          {/* Premiums Rows */}
+                          <tr className="border-b border-gray-200 bg-red-50/50">
+                            <td className="sticky left-0 bg-red-50/50 p-4 font-bold text-[#D31145] shadow-[2px_0_5px_rgba(0,0,0,0.02)] z-10">เบี้ยสุขภาพรายปี (บาท)</td>
+                            {premiumData.map((data, idx) => (
+                              <td key={idx} className="p-4 text-center font-bold text-[#D31145] text-base">
+                                  {data.health.toLocaleString()}
+                                  {data.subtitle && <div className="text-[10px] font-normal opacity-80">{data.subtitle}</div>}
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="bg-[#D31145] text-white">
+                            <td className="sticky left-0 bg-[#D31145] p-4 font-bold shadow-[2px_0_5px_rgba(0,0,0,0.1)] z-10">
+                              เบี้ยรวมทั้งหมด (บาท)<br/>
+                              <span className="text-xs font-normal opacity-80">(รวมหลัก + สุขภาพ + สัญญาเพิ่มเติมอื่น)</span>
+                            </td>
+                            {premiumData.map((data, idx) => (
+                              <td key={idx} className="p-4 text-center font-bold text-xl">{data.total.toLocaleString()}</td>
+                            ))}
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          return (
+            <div className="min-h-screen bg-gray-50 p-2 md:p-6 font-sans text-gray-800">
+              <div className="max-w-7xl mx-auto">
+                
+                {/* Header */}
+                <div className="bg-gradient-to-r from-[#D31145] to-[#f43f5e] text-white rounded-3xl p-6 md:p-8 shadow-lg mb-6">
+                  <div className="flex items-center gap-4 mb-2">
+                    <ShieldCheck size={36} className="text-white" />
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-wide">Premium Calculator</h1>
+                  </div>
+                  <p className="text-red-100 text-sm md:text-base opacity-90 md:ml-[3.25rem]">คำนวณเบี้ยประกันหลัก + สัญญาเพิ่มเติม (สุขภาพ, โรคร้ายแรง, ชดเชยรายได้)</p>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex flex-wrap bg-gray-200 p-1 rounded-2xl mb-6 w-fit mx-auto sm:mx-0">
+                  <button 
+                    onClick={() => setAppMode('SINGLE')} 
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${appMode === 'SINGLE' ? 'bg-white text-[#D31145] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <Calculator size={18}/> คำนวณเบี้ยเดี่ยว
+                  </button>
+                  <button 
+                    onClick={() => setAppMode('COMPARE')} 
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${appMode === 'COMPARE' ? 'bg-white text-[#D31145] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <Table size={18}/> เปรียบเทียบแผนสุขภาพ
+                  </button>
+                </div>
+
+                {/* Global Setup */}
+                {renderUserInfoBox()}
+
+                {/* Dynamic Area */}
+                {appMode === 'SINGLE' ? renderSingleMode() : renderCompareMode()}
+
+              </div>
+              
+              <style dangerouslySetInnerHTML={{__html: `
+                @keyframes fadeInUp {
+                  from { opacity: 0; transform: translateY(15px); }
+                  to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+                
+                /* Hide scrollbar */
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+              `}} />
+            </div>
+          );
+        }
+
+        const rootElement = document.getElementById('root');
+        if (rootElement) {
+          const root = createRoot(rootElement);
+          root.render(<App />);
+        }
+    </script>
+</body>
+</html>
